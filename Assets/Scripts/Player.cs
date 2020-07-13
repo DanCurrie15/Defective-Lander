@@ -14,7 +14,7 @@ public class Player : MonoBehaviour
 
     public List<Transform> StartingLocation = new List<Transform>();
 
-    private const float FUEL_SPENDING = 0.01f;
+    private const float FUEL_SPENDING = 0.04f;
     private const float FAILING_CONST = 3f;
 
     private bool thrustingFailingStart = true;
@@ -52,7 +52,7 @@ public class Player : MonoBehaviour
                 GameManager.Instance.fuel -= (FUEL_SPENDING / FAILING_CONST);
                 FireThrusters();
             }
-            if (Input.GetKeyUp(KeyCode.UpArrow))
+            if (Input.GetKeyUp(KeyCode.UpArrow) && GameManager.Instance.thrustEnabled != State.Failing)
             {
                 StopThrusters();
             }
@@ -115,11 +115,20 @@ public class Player : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         StopThrusters();
-        if (collision.gameObject.CompareTag("Planet") && GameManager.Instance.gameOn)
+        if (GameManager.Instance.gameOn)
         {
-            if(rb.velocity.magnitude < 3f)
+            if (collision.gameObject.CompareTag("Planet"))
             {
-                GameManager.Instance.WinGame();                
+                if (collision.relativeVelocity.magnitude < 5f)
+                {
+                    GameManager.Instance.WinGame();
+                }
+                else
+                {
+                    GameManager.Instance.LoseGame();
+                    gameObject.SetActive(false);
+                    Instantiate(explosion, transform.position, transform.rotation);
+                }
             }
             else
             {
@@ -127,12 +136,6 @@ public class Player : MonoBehaviour
                 gameObject.SetActive(false);
                 Instantiate(explosion, transform.position, transform.rotation);
             }
-        }
-        else
-        {
-            GameManager.Instance.LoseGame();
-            gameObject.SetActive(false);
-            Instantiate(explosion, transform.position, transform.rotation);
-        }
+        }        
     }
 }
